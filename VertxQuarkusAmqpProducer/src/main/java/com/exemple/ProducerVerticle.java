@@ -4,9 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.json.JsonObject;
-import io.vertx.rabbitmq.RabbitMQClient;
-import io.vertx.rabbitmq.RabbitMQOptions;
+import io.vertx.ext.amqp.AmqpClient;
+import io.vertx.ext.amqp.AmqpClientOptions;
+import io.vertx.ext.amqp.AmqpConnection;
+import io.vertx.ext.amqp.AmqpMessage;
+import io.vertx.ext.amqp.AmqpSender;
 
 public class ProducerVerticle extends AbstractVerticle {
 
@@ -17,51 +19,50 @@ public class ProducerVerticle extends AbstractVerticle {
 	// https://github.com/vert-x3/vertx-rabbitmq-client/issues/30
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProducerVerticle.class);
+	private AmqpClient client;
 
 	@Override
 	public void start() throws Exception {
-		RabbitMQOptions mqconfig = new RabbitMQOptions();
-		mqconfig.setUri("localhost");
-		mqconfig.setPort(5672);
-		mqconfig.setUser("quarkus");
-		mqconfig.setPassword("quarkus");
-		RabbitMQClient client = RabbitMQClient.create(vertx, mqconfig);
-		
-		System.out.println("client isConnected : "+client.isConnected());
-		client.start(startResult -> {
-			if (startResult.succeeded()) {
-				System.out.println("client started!");
+
+		AmqpClientOptions options = new AmqpClientOptions().setHost("localhost").setPort(5672).setUsername("rabbit")
+				.setPassword("rabbit");
+		// Create a client using its own internal Vert.x instance.
+		// AmqpClient client = AmqpClient.create(options);
+
+		// USe an explicit Vert.x instance.
+		client = AmqpClient.create(vertx, options);
+
+		client.connect(ar -> {
+			if (ar.failed()) {
+				LOGGER.info("Unable to connect to the broker");
 			} else {
-				System.out.println("client failed to be started!");
-				startResult.cause().printStackTrace();
+				LOGGER.info("Connection succeeded");
+				AmqpConnection connection = ar.result();
+				connection.createSender("my-queue", done -> {
+					if (done.failed()) {
+						LOGGER.info("Unable to create a sender");
+					} else {
+						LOGGER.info("Sender created");
+						AmqpSender sender = done.result();
+						vertx.setPeriodic(5000, x -> {
+							LOGGER.info("Sending Hello to consumer");
+							sender.send(AmqpMessage.create().withBody("Hello from Producer").build());
+						});
+					}
+				});
 			}
 		});
 
-		JsonObject config = new JsonObject();
-		config.put("x-message-ttl", 10_000L);
-
-//		System.out.println("queue declare");
-//		client.queueDeclare("vertx-queue", true, false, true, config, queueResult -> {
-//			if (queueResult.succeeded()) {
-//				System.out.println("Queue declared!");
-//			} else {
-//				System.err.println("Queue failed to be declared!");
-//				queueResult.cause().printStackTrace();
-//			}
-//		});
-
-		JsonObject message = new JsonObject().put("body", "Hello RabbitMQ, from Vert.x !");
-		client.basicPublish("", "vertx-queue", message, pubResult -> {
-			if (pubResult.succeeded()) {
-				System.out.println("Message published !");
-			} else {
-				pubResult.cause().printStackTrace();
-			}
-		});
+		super.start();
 	}
 
 	@Override
 	public void stop() throws Exception {
+		client.close(x -> {
+			if (x.succeeded()) {
+				LOGGER.info("AmqpClient closed successfully");
+			}
+		});
 		super.stop();
 	}
 }

@@ -5,7 +5,6 @@ import java.util.Objects;
 public class Fruit {
 
     private String name;
-
     private String description;
 
     public Fruit() {

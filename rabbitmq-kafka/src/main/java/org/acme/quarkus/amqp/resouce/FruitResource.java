@@ -34,6 +34,7 @@ public class FruitResource {
     @POST
     public Set<Fruit> add(Fruit fruit) {
         fruits.add(fruit);
+        fruitProducer.produce();
         return fruits;
     }
 

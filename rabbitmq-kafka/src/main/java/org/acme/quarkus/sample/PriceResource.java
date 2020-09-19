@@ -16,7 +16,8 @@ import javax.ws.rs.core.MediaType;
 public class PriceResource {
 
     @Inject
-    @Stream("my-data-stream") Publisher<Double> prices;         
+    @Stream("my-data-stream")
+    Publisher<Double> prices;         
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)

@@ -36,17 +36,26 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-vertx</artifactId>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.vertx/vertx-amqp-client -->
-		<!-- <dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-amqp-client</artifactId>
+            <version>3.7.0</version>
+        </dependency>
+
+		<!--
+		<dependency>
 			<groupId>io.vertx</groupId>
-			<artifactId>vertx-amqp-client</artifactId>
+			<artifactId>vertx-amqp-client</artifactId> 
 			<version>3.8.0</version>
-		</dependency> -->
+		</dependency>
+		
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-rabbitmq-client</artifactId>
 			<version>3.8.0</version>
 		</dependency>
+		 -->
 
 		<dependency>
 			<groupId>io.quarkus</groupId>

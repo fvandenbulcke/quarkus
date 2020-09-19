@@ -23,7 +23,7 @@ public class FruitProducer {
     	return fruits;
     }
 
-    // @Outgoing("fruits")                        
+    @Outgoing("fruits")                        
     public Fruit produce() {               
         return new Fruit("Pineapple", "Tropical fruit");
     }

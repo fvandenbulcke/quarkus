@@ -1,11 +1,15 @@
 package org.acme.quarkus.sample;
 
-import io.reactivex.Flowable;
-import org.eclipse.microprofile.reactive.messaging.Outgoing;
-
-import javax.enterprise.context.ApplicationScoped;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
+import javax.enterprise.context.ApplicationScoped;
+
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
+
+import io.reactivex.Flowable;
 
 /**
  * A bean producing random prices every 5 seconds.
@@ -16,11 +20,18 @@ import java.util.concurrent.TimeUnit;
 public class PriceGenerator {
 
     private Random random = new Random();
+    
+    private List<String> list = Arrays.asList("Apple", "Banana", "Grapes","Mango","Birne","Orange");
 
-    @Outgoing("generated-price")                        
-    public Flowable<Integer> generate() {               
+    @Outgoing("prices-topic")                        
+    public Flowable<Price> generate() {               
         return Flowable.interval(5, TimeUnit.SECONDS)
-                .map(tick -> random.nextInt(100));
+                .map(tick -> {
+                	int price = random.nextInt(100);
+                	Price payload = new Price(list.get(random.nextInt(5)), price);
+                	System.out.println("sent <"+payload.getLabel()+"> to topic prices");
+                	return payload;
+                });
     }
 
 }
